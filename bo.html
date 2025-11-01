@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Dự đoán Giao dịch</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #fdbb2d, #b21f1f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+        
+        .input-section {
+            margin-bottom: 30px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: none;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        input:focus, select:focus {
+            outline: 2px solid #fdbb2d;
+        }
+        
+        button {
+            background: linear-gradient(to right, #1a2a6c, #b21f1f);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .icon {
+            margin-right: 8px;
+        }
+        
+        .prediction-section {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .prediction-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .prediction-result {
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            transition: all 0.5s ease;
+        }
+        
+        .buy {
+            background-color: rgba(0, 200, 83, 0.3);
+            color: #4caf50;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+        }
+        
+        .sell {
+            background-color: rgba(244, 67, 54, 0.3);
+            color: #f44336;
+            box-shadow: 0 0 20px rgba(244, 67, 54, 0.5);
+        }
+        
+        .neutral {
+            background-color: rgba(255, 193, 7, 0.3);
+            color: #ffc107;
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.5);
+        }
+        
+        .confidence {
+            font-size: 1.2rem;
+            margin-top: 10px;
+        }
+        
+        .history-section {
+            margin-top: 30px;
+        }
+        
+        .history-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .history-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-time {
+            opacity: 0.7;
+        }
+        
+        .history-prediction.buy {
+            color: #4caf50;
+        }
+        
+        .history-prediction.sell {
+            color: #f44336;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .button-group button {
+            flex: 1;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .spinner {
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 5px solid #fdbb2d;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .prediction-result {
+                font-size: 2.5rem;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Dự đoán Giao dịch</h1>
+            <p class="subtitle">Công cụ AI tự động đọc lệnh và dự đoán BUY/SELL</p>
+        </header>
+        
+        <div class="input-section">
+            <div class="input-group">
+                <label for="symbol">Mã chứng khoán / Tiền điện tử:</label>
+                <input type="text" id="symbol" placeholder="Ví dụ: BTC, AAPL, VN30" value="BTC">
+            </div>
+            
+            <div class="input-group">
+                <label for="timeframe">Khung thời gian:</label>
+                <select id="timeframe">
+                    <option value="1h">1 Giờ</option>
+                    <option value="4h">4 Giờ</option>
+                    <option value="1d" selected>1 Ngày</option>
+                    <option value="1w">1 Tuần</option>
+                </select>
+            </div>
+            
+            <div class="button-group">
+                <button id="analyze-btn">
+                    <span class="icon">📊</span> Phân tích & Dự đoán
+                </button>
+                <button id="refresh-btn">
+                    <span class="icon">🔄</span> Tải lại Dự đoán
+                </button>
+            </div>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>AI đang phân tích dữ liệu...</p>
+        </div>
+        
+        <div class="prediction-section">
+            <h2 class="prediction-title">Dự đoán hiện tại</h2>
+            <div id="prediction-result" class="prediction-result neutral">---</div>
+            <p id="confidence" class="confidence">Độ tin cậy: --%</p>
+            <p id="prediction-time">Thời gian: --</p>
+        </div>
+        
+        <div class="history-section">
+            <h2 class="history-title">Lịch sử dự đoán</h2>
+            <div class="history-list" id="history-list">
+                <!-- Lịch sử sẽ được thêm ở đây bằng JavaScript -->
+            </div>
+        </div>
+        
+        <footer>
+            <p>Công cụ này chỉ mang tính chất tham khảo. Đầu tư tài chính luôn tiềm ẩn rủi ro.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const refreshBtn = document.getElementById('refresh-btn');
+            const predictionResult = document.getElementById('prediction-result');
+            const confidenceElement = document.getElementById('confidence');
+            const predictionTimeElement = document.getElementById('prediction-time');
+            const historyList = document.getElementById('history-list');
+            const loadingElement = document.getElementById('loading');
+            const symbolInput = document.getElementById('symbol');
+            const timeframeSelect = document.getElementById('timeframe');
+            
+            let predictionHistory = [];
+            
+            // Hàm tạo dự đoán ngẫu nhiên
+            function generatePrediction() {
+                const predictions = ['BUY', 'SELL', 'HOLD'];
+                const randomIndex = Math.floor(Math.random() * predictions.length);
+                return predictions[randomIndex];
+            }
+            
+            // Hàm tạo độ tin cậy ngẫu nhiên
+            function generateConfidence() {
+                return Math.floor(Math.random() * 30) + 70; // 70-99%
+            }
+            
+            // Hàm hiển thị dự đoán
+            function displayPrediction(prediction, confidence) {
+                predictionResult.textContent = prediction;
+                predictionResult.className = 'prediction-result ';
+                
+                if (prediction === 'BUY') {
+                    predictionResult.classList.add('buy');
+                } else if (prediction === 'SELL') {
+                    predictionResult.classList.add('sell');
+                } else {
+                    predictionResult.classList.add('neutral');
+                }
+                
+                confidenceElement.textContent = `Độ tin cậy: ${confidence}%`;
+                
+                const now = new Date();
+                predictionTimeElement.textContent = `Thời gian: ${now.toLocaleString('vi-VN')}`;
+            }
+            
+            // Hàm thêm vào lịch sử
+            function addToHistory(prediction, confidence, symbol, timeframe) {
+                const now = new Date();
+                const historyItem = {
+                    time: now.toLocaleString('vi-VN'),
+                    prediction: prediction,
+                    confidence: confidence,
+                    symbol: symbol,
+                    timeframe: timeframe
+                };
+                
+                predictionHistory.unshift(historyItem); // Thêm vào đầu mảng
+                
+                // Giới hạn lịch sử 5 mục
+                if (predictionHistory.length > 5) {
+                    predictionHistory = predictionHistory.slice(0, 5);
+                }
+                
+                updateHistoryDisplay();
+            }
+            
+            // Hàm cập nhật hiển thị lịch sử
+            function updateHistoryDisplay() {
+                historyList.innerHTML = '';
+                
+                predictionHistory.forEach(item => {
+                    const historyItemElement = document.createElement('div');
+                    historyItemElement.className = 'history-item';
+                    
+                    historyItemElement.innerHTML = `
+                        <div>
+                            <div>${item.symbol} - ${item.timeframe}</div>
+                            <div class="history-time">${item.time}</div>
+                        </div>
+                        <div class="history-prediction ${item.prediction.toLowerCase()}">${item.prediction} (${item.confidence}%)</div>
+                    `;
+                    
+                    historyList.appendChild(historyItemElement);
+                });
+            }
+            
+            // Hàm thực hiện phân tích
+            function performAnalysis() {
+                loadingElement.style.display = 'block';
+                
+                // Mô phỏng thời gian xử lý của AI
+                setTimeout(() => {
+                    const symbol = symbolInput.value || 'BTC';
+                    const timeframe = timeframeSelect.value;
+                    const prediction = generatePrediction();
+                    const confidence = generateConfidence();
+                    
+                    displayPrediction(prediction, confidence);
+                    addToHistory(prediction, confidence, symbol, timeframe);
+                    
+                    loadingElement.style.display = 'none';
+                }, 1500);
+            }
+            
+            // Sự kiện khi nhấn nút phân tích
+            analyzeBtn.addEventListener('click', performAnalysis);
+            
+            // Sự kiện khi nhấn nút tải lại
+            refreshBtn.addEventListener('click', performAnalysis);
+            
+            // Tạo dự đoán ban đầu
+            performAnalysis();
+        });
+    </script>
+</body>
+</html>
